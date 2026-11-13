@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Servidor Web DAW - Nginx</title>
+    <style>
+        :root {
+            --bg-main: #090d16;
+            --bg-card: #111827;
+            --border: #1f2937;
+            --accent: #38bdf8;
+            --accent-hover: #0284c7;
+            --success: #10b981;
+            --text-primary: #f3f4f6;
+            --text-secondary: #9ca3af;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background-color: rgba(17, 24, 39, 0.85);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .logo {
+            font-weight: 700;
+            font-size: 1.2rem;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .logo span {
+            color: var(--accent);
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(16, 185, 129, 0.12);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: var(--success);
+            padding: 0.35rem 0.85rem;
+            border-radius: 999px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .pulse {
+            width: 8px;
+            height: 8px;
+            background-color: var(--success);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--success);
+            animation: blink 2s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        main {
+            flex: 1;
+            max-width: 1050px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 3rem 1.5rem;
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .hero h1 {
+            font-size: clamp(2rem, 4vw, 2.8rem);
+            margin-bottom: 0.75rem;
+            background: linear-gradient(90deg, #f3f4f6, #38bdf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            color: var(--text-secondary);
+            max-width: 620px;
+            margin: 0 auto 1.5rem;
+            font-size: 1.05rem;
+        }
+
+        .btn {
+            background-color: var(--accent);
+            color: #090d16;
+            border: none;
+            padding: 0.7rem 1.4rem;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.15s;
+        }
+
+        .btn:hover {
+            background-color: var(--accent-hover);
+            color: #ffffff;
+            transform: translateY(-2px);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.75rem;
+            transition: border-color 0.25s, transform 0.25s;
+        }
+
+        .card:hover {
+            border-color: var(--accent);
+            transform: translateY(-3px);
+        }
+
+        .card-tag {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--accent);
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .card h3 {
+            font-size: 1.2rem;
+            margin-bottom: 0.6rem;
+        }
+
+        .card p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .terminal-box {
+            background-color: #05080f;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1.25rem 1.5rem;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: #d1d5db;
+        }
+
+        .terminal-header {
+            display: flex;
+            gap: 0.45rem;
+            margin-bottom: 0.9rem;
+        }
+
+        .dot {
+            width: 11px;
+            height: 11px;
+            border-radius: 50%;
+        }
+
+        .dot.red { background: #ef4444; }
+        .dot.yellow { background: #f59e0b; }
+        .dot.green { background: #10b981; }
+
+        .prompt {
+            color: var(--success);
+        }
+
+        footer {
+            text-align: center;
+            padding: 1.5rem;
+            border-top: 1px solid var(--border);
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">DEBIAN 13 // <span>NGINX VPS</span></div>
+        <div class="status-badge">
+            <span class="pulse"></span>
+            HTTP 200 OK
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <h1>Despliegue Web Operativo</h1>
+            <p>Esta página está siendo servida desde tu máquina virtual Debian mediante un Virtual Host configurado en Nginx y resuelto localmente.</p>
+            <button class="btn" id="btn-test">Comprobar respuesta del cliente</button>
+        </section>
+
+        <section class="grid">
+            <article class="card">
+                <span class="card-tag">Capa de Red</span>
+                <h3>Adaptador Puente</h3>
+                <p>Conexión directa en la red local mediante SSH con autenticación asimétrica por clave pública Ed25519.</p>
+            </article>
+
+            <article class="card">
+                <span class="card-tag">Servidor Web</span>
+                <h3>Nginx Virtual Host</h3>
+                <p>Bloque de servidor activo en <code>sites-enabled</code> apuntando al directorio raíz con permisos <code>www-data</code>.</p>
+            </article>
+
+            <article class="card">
+                <span class="card-tag">Resolución DNS</span>
+                <h3>Archivo Hosts</h3>
+                <p>Traducción manual del dominio local hacia la dirección IPv4 asignada a la interfaz de Debian.</p>
+            </article>
+        </section>
+
+        <section class="terminal-box">
+            <div class="terminal-header">
+                <span class="dot red"></span>
+                <span class="dot yellow"></span>
+                <span class="dot green"></span>
+            </div>
+            <div id="log-output">
+                <p><span class="prompt">examen@debian:~$</span> systemctl is-active nginx &rarr; active</p>
+                <p id="client-info"><span class="prompt">cliente@windows:~$</span> Esperando comprobación manual...</p>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        Práctica de Despliegue de Aplicaciones Web &bull; Entorno de pruebas Nginx
+    </footer>
+
+    <script>
+        const btn = document.getElementById('btn-test');
+        const info = document.getElementById('client-info');
+
+        btn.addEventListener('click', () => {
+            const ahora = new Date().toLocaleTimeString();
+            const host = window.location.hostname || 'localhost';
+            info.innerHTML = `<span class="prompt">cliente@windows:~$</span> Petición verificada en <strong>${host}</strong> a las ${ahora} [Estado: OK]`;
+        });
+    </script>
+
+</body>
+</html>
